@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="es-AR" class="scroll-smooth">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecciones — de tus datos a la decisión</title>
+<meta name="description" content="Plataforma de soporte a decisiones para empresas: dashboards sobre los datos que ya generás, modelos que predicen demanda, mora, churn y quiebres de stock, y alertas con la acción recomendada. Implementación y operación mensual.">
+
+<!-- Evita el parpadeo de tema antes de pintar -->
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('tema');
+      if (t === 'oscuro' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+    } catch (e) {}
+  })();
+</script>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          paper:  '#FAF9F5',
+          card:   '#FFFFFF',
+          line:   '#E5E1D8',
+          line2:  '#D6D1C5',
+          ink:    '#15161A',
+          soft:   '#5B5D64',
+          night:  '#0C0D0F',
+          panel:  '#141619',
+          edge:   '#262A2F',
+          edge2:  '#343941',
+          bone:   '#EBEBE6',
+          bonesoft:'#95989E',
+          /* Paleta de estado — validada con scripts/validate_palette.js
+             claro: 5/6 PASS (CVD 6,7 = banda piso, legal con etiqueta de texto)
+             oscuro: 6/6 PASS */
+          bien:   '#0A7550',  bien2:  '#22AC7B',
+          aviso:  '#9C6B05',  aviso2: '#B28C04',
+          grave:  '#A8272E',  grave2: '#DE5580'
+        },
+        fontFamily: {
+          display: ['ui-serif','Charter','Iowan Old Style','Source Serif 4','Palatino Linotype','Palatino','Georgia','serif'],
+          sans: ['system-ui','-apple-system','Segoe UI','Roboto','Helvetica Neue','Arial','sans-serif'],
+          mono: ['ui-monospace','SFMono-Regular','SF Mono','Menlo','Consolas','Liberation Mono','monospace']
+        },
+        maxWidth: { content: '72rem' }
+      }
+    }
+  };
+</script>
+
+<style>
+  body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+  .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s cubic-bezier(.22,.61,.36,1), transform .7s cubic-bezier(.22,.61,.36,1); }
+  .reveal.visto { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+  }
+
+  .cuadricula {
+    background-image:
+      linear-gradient(to right, rgba(21,22,26,.055) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(21,22,26,.055) 1px, transparent 1px);
+    background-size: 46px 46px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 78%);
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 78%);
+  }
+  .dark .cuadricula {
+    background-image:
+      linear-gradient(to right, rgba(235,235,230,.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(235,235,230,.06) 1px, transparent 1px);
+  }
+
+  .tab { font-variant-numeric: tabular-nums; }
+
+  details > summary { list-style: none; cursor: pointer; }
+  details > summary::-webkit-details-marker { display: none; }
+  details[open] .mas { transform: rotate(45deg); }
+
+  /* ── Gráfico ── */
+  .serie      { stroke: #0A7550; }
+  .dark .serie{ stroke: #22AC7B; }
+  .banda      { fill: #0A7550; opacity: .10; }
+  .dark .banda{ fill: #22AC7B; opacity: .13; }
+  .punto      { fill: #0A7550; }
+  .dark .punto{ fill: #22AC7B; }
+  .rejilla      { stroke: rgba(21,22,26,.12); }
+  .dark .rejilla{ stroke: rgba(235,235,230,.13); }
+  .eje      { fill: #5B5D64; }
+  .dark .eje{ fill: #95989E; }
+
+  #globo { opacity: 0; transition: opacity .14s; }
+  #globo.on { opacity: 1; }
+
+  .scroll-fina::-webkit-scrollbar { height: 8px; }
+  .scroll-fina::-webkit-scrollbar-thumb { background: rgba(21,22,26,.18); border-radius: 8px; }
+  .dark .scroll-fina::-webkit-scrollbar-thumb { background: rgba(235,235,230,.18); }
+</style>
+</head>
+
+<body class="bg-paper text-ink dark:bg-night dark:text-bone font-sans antialiased">
+
+<!-- ══════════════════ NAV ══════════════════ -->
+<header class="sticky top-0 z-50 px-4 pt-4">
+  <nav class="mx-auto flex max-w-content items-center justify-between gap-4 rounded-xl border border-line bg-card/85 px-4 py-2.5 backdrop-blur-md dark:border-edge dark:bg-panel/85">
+    <a href="#" class="flex items-center gap-2.5">
+      <span class="grid h-7 w-7 place-items-center rounded-md border border-line2 bg-paper dark:border-edge2 dark:bg-night">
+        <svg viewBox="0 0 16 16" class="h-4 w-4" aria-hidden="true">
+          <path d="M2 12.5 5.4 9.1l2.4 1.6L13.4 4.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="text-bien dark:text-bien2"/>
+          <circle cx="13.4" cy="4.2" r="1.5" fill="currentColor" class="text-bien dark:text-bien2"/>
+        </svg>
+      </span>
+      <span class="font-display text-[17px] font-semibold tracking-tight">Proyecciones</span>
+    </a>
+
+    <div class="hidden items-center gap-6 text-sm text-soft dark:text-bonesoft lg:flex">
+      <a href="#capas" class="transition hover:text-ink dark:hover:text-bone">Qué hace</a>
+      <a href="#en-uso" class="transition hover:text-ink dark:hover:text-bone">En uso</a>
+      <a href="#implementacion" class="transition hover:text-ink dark:hover:text-bone">Implementación</a>
+      <a href="#requisitos" class="transition hover:text-ink dark:hover:text-bone">Requisitos</a>
+      <a href="#precio" class="transition hover:text-ink dark:hover:text-bone">Precio</a>
+      <a href="#faq" class="transition hover:text-ink dark:hover:text-bone">FAQ</a>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button id="btn-tema" type="button" aria-label="Cambiar tema"
+        class="grid h-9 w-9 place-items-center rounded-lg border border-line text-soft transition hover:bg-paper dark:border-edge dark:text-bonesoft dark:hover:bg-night">
+        <svg class="h-4 w-4 dark:hidden" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M16 11.5A6.5 6.5 0 0 1 8.5 4a6.5 6.5 0 1 0 7.5 7.5Z" stroke-linejoin="round"/>
+        </svg>
+        <svg class="hidden h-4 w-4 dark:block" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <circle cx="10" cy="10" r="3.6"/>
+          <path d="M10 1.6v2M10 16.4v2M1.6 10h2M16.4 10h2M4.1 4.1l1.4 1.4M14.5 14.5l1.4 1.4M15.9 4.1l-1.4 1.4M5.5 14.5l-1.4 1.4" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <!-- TODO: mail o formulario real -->
+      <a href="mailto:hola@ejemplo.com?subject=Diagn%C3%B3stico%20de%20datos"
+         class="rounded-lg bg-ink px-3.5 py-2 text-[13px] font-medium text-paper transition hover:opacity-90 dark:bg-bone dark:text-night">
+        Pedir un diagnóstico
+      </a>
+    </div>
+  </nav>
+</header>
+
+<main>
+<!-- ══════════════════ HERO ══════════════════ -->
+<section class="relative overflow-hidden px-4 pb-20 pt-16 sm:pt-24">
+  <div class="cuadricula pointer-events-none absolute inset-0 -z-10"></div>
+
+  <div class="mx-auto max-w-content">
+    <div class="mx-auto max-w-3xl text-center">
+      <p class="reveal mb-6 inline-flex items-center gap-2 rounded-full border border-line bg-card px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-soft dark:border-edge dark:bg-panel dark:text-bonesoft">
+        <span class="h-1.5 w-1.5 rounded-full bg-bien dark:bg-bien2"></span>
+        Qué pasó · qué va a pasar · qué hacer
+      </p>
+
+      <h1 class="reveal font-display text-[2.1rem] font-semibold leading-[1.08] tracking-tight sm:text-5xl lg:text-[3.4rem]">
+        El dato que te avisaba<br class="hidden sm:block">
+        ya estaba en tu sistema.
+      </h1>
+
+      <p class="reveal mx-auto mt-7 max-w-2xl text-[17px] leading-relaxed text-soft dark:text-bonesoft">
+        El cliente que se estaba yendo, el producto que iba a faltar, la cuenta que iba a entrar
+        en mora: todo eso estaba escrito en tus ventas, tu stock y tus cobranzas semanas antes.
+        Proyecciones conecta esos datos, los ordena, los proyecta y te avisa a tiempo — con la
+        acción recomendada, no con un gráfico más para interpretar.
+      </p>
+
+      <div class="reveal mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+        <a href="mailto:hola@ejemplo.com?subject=Diagn%C3%B3stico%20de%20datos"
+           class="w-full rounded-lg bg-ink px-6 py-3.5 text-center text-[15px] font-medium text-paper transition hover:opacity-90 dark:bg-bone dark:text-night sm:w-auto">
+          Pedir un diagnóstico
+        </a>
+        <a href="#requisitos"
+           class="w-full rounded-lg border border-line2 px-6 py-3.5 text-center text-[15px] font-medium transition hover:bg-card dark:border-edge2 dark:hover:bg-panel sm:w-auto">
+          Ver si tus datos alcanzan
+        </a>
+      </div>
+
+      <!-- TODO: confirmar plazos y condiciones antes de publicar -->
+      <p class="reveal mt-5 font-mono text-[12px] text-soft dark:text-bonesoft">
+        Diagnóstico inicial sin costo · Implementación de 6 a 10 semanas · Tus datos no entrenan modelos de terceros
+      </p>
+    </div>
+
+    <!-- ─────────── PANEL DE DECISIONES ─────────── -->
+    <div class="reveal mt-16 overflow-hidden rounded-xl border border-line2 bg-card shadow-[0_24px_60px_-30px_rgba(21,22,26,.35)] dark:border-edge2 dark:bg-panel dark:shadow-[0_24px_60px_-30px_rgba(0,0,0,.85)]">
+
+      <!-- barra superior -->
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line bg-paper px-4 py-3 dark:border-edge dark:bg-night">
+        <div class="flex items-center gap-2.5">
+          <span class="grid h-7 w-7 place-items-center rounded-md bg-ink font-mono text-[11px] font-semibold text-paper dark:bg-bone dark:text-night">DS</span>
+          <div class="leading-tight">
+            <p class="text-[13px] font-medium">Distribuidora San Justo</p>
+            <p class="font-mono text-[11px] text-soft dark:text-bonesoft">Comercial · 412 clientes activos</p>
+          </div>
+        </div>
+        <div class="ml-auto flex items-center gap-2 font-mono text-[11px] text-soft dark:text-bonesoft">
+          <span class="rounded border border-line px-2 py-1 dark:border-edge">Últimos 6 meses</span>
+          <span class="hidden rounded border border-line px-2 py-1 sm:inline dark:border-edge">ARS</span>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-[1.5fr_1fr]">
+
+        <!-- ═══ columna izquierda: KPIs + gráfico ═══ -->
+        <div class="border-b border-line p-4 dark:border-edge lg:border-b-0 lg:border-r">
+
+          <!-- KPIs -->
+          <div class="tab grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div class="rounded-lg border border-line bg-paper p-3 dark:border-edge dark:bg-night">
+              <p class="font-mono text-[10px] uppercase tracking-[0.1em] text-soft dark:text-bonesoft">Ventas agosto</p>
+              <p class="mt-1.5 font-display text-[1.35rem] font-semibold leading-none">$184,2 M</p>
+              <p class="mt-1.5 text-[11px] text-soft dark:text-bonesoft">+3,4% vs julio</p>
+            </div>
+            <div class="rounded-lg border border-line bg-paper p-3 dark:border-edge dark:bg-night">
+              <p class="font-mono text-[10px] uppercase tracking-[0.1em] text-soft dark:text-bonesoft">Proyección sep</p>
+              <p class="mt-1.5 font-display text-[1.35rem] font-semibold leading-none">$196,0 M</p>
+              <p class="mt-1.5 text-[11px] text-soft dark:text-bonesoft">banda 182 – 210</p>
+            </div>
+            <div class="rounded-lg border border-line bg-paper p-3 dark:border-edge dark:bg-night">
+              <p class="font-mono text-[10px] uppercase tracking-[0.1em] text-soft dark:text-bonesoft">Clientes en riesgo</p>
+              <p class="mt-1.5 font-display text-[1.35rem] font-semibold leading-none">23</p>
+              <p class="mt-1.5 text-[11px] text-soft dark:text-bonesoft">18% de la facturación</p>
+            </div>
+            <div class="rounded-lg border border-line bg-paper p-3 dark:border-edge dark:bg-night">
+              <p class="font-mono text-[10px] uppercase tracking-[0.1em] text-soft dark:text-bonesoft">Quiebres a 30 d</p>
+              <p class="mt-1.5 font-display text-[1.35rem] font-semibold leading-none">6 SKU</p>
+              <p class="mt-1.5 text-[11px] text-soft dark:text-bonesoft">2 sin OC emitida</p>
+            </div>
+          </div>
+
+          <!-- gráfico -->
+          <div class="relative mt-4 rounded-lg border border-line bg-paper p-3 dark:border-edge dark:bg-night">
+            <div class="flex items-baseline justify-between px-1">
+              <p class="text-[12px] font-medium">Ventas mensuales y proyección a 3 meses</p>
+              <p class="font-mono text-[10px] text-soft dark:text-bonesoft">millones ARS</p>
+            </div>
+
+            <div class="relative mt-1">
+            <svg id="grafico" viewBox="0 0 720 232" class="block w-full" role="img"
+                 aria-label="Ventas mensuales de marzo a agosto, de 142,6 a 184,2 millones de pesos, con proyección de septiembre a noviembre de 196,0, 203,5 y 214,0 millones y una banda de incertidumbre que se ensancha de 182–210 a 191–237.">
+
+              <!-- rejilla -->
+              <g class="rejilla" stroke-width="1">
+                <line x1="60" y1="54.8"  x2="690" y2="54.8"/>
+                <line x1="60" y1="110.4" x2="690" y2="110.4"/>
+                <line x1="60" y1="166.1" x2="690" y2="166.1"/>
+                <line x1="60" y1="180"   x2="690" y2="180" stroke-width="1.5"/>
+              </g>
+              <g class="eje" font-size="10" font-family="ui-monospace, monospace" text-anchor="end">
+                <text x="48" y="58.5">220</text>
+                <text x="48" y="114">180</text>
+                <text x="48" y="169.5">140</text>
+              </g>
+
+              <!-- banda de incertidumbre -->
+              <path class="banda" d="M453.75,104.6 L532.5,68.7 L611.25,53.4 L690,31.1 L690,95.1 L611.25,102.1 L532.5,107.6 Z"/>
+
+              <!-- corte "hoy" -->
+              <line x1="453.75" y1="20" x2="453.75" y2="180" class="rejilla" stroke-width="1" stroke-dasharray="3 4"/>
+              <text x="449" y="30" class="eje" font-size="10" font-family="ui-monospace, monospace" text-anchor="end">hoy</text>
+
+              <!-- serie real -->
+              <path class="serie" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    d="M60,162.5 L138.75,150.4 L217.5,153.7 L296.25,133.5 L375,113.1 L453.75,104.6"/>
+              <!-- proyección -->
+              <path class="serie" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="5 5"
+                    d="M453.75,104.6 L532.5,88.2 L611.25,77.7 L690,63.1"/>
+
+              <!-- etiquetas directas de las dos partes de la serie -->
+              <g font-size="10.5" font-family="ui-monospace, monospace">
+                <line class="serie" x1="60" y1="26" x2="82" y2="26" stroke-width="2" stroke-linecap="round"/>
+                <text x="88" y="29.5" class="eje">real</text>
+                <line class="serie" x1="150" y1="26" x2="172" y2="26" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 5"/>
+                <text x="178" y="29.5" class="eje">proyección y banda</text>
+              </g>
+
+              <!-- puntos -->
+              <g class="punto">
+                <circle cx="60" cy="162.5" r="3.2"/><circle cx="138.75" cy="150.4" r="3.2"/>
+                <circle cx="217.5" cy="153.7" r="3.2"/><circle cx="296.25" cy="133.5" r="3.2"/>
+                <circle cx="375" cy="113.1" r="3.2"/><circle cx="453.75" cy="104.6" r="4.2"/>
+              </g>
+              <g class="serie" fill="none" stroke-width="2">
+                <circle cx="532.5" cy="88.2" r="3.2"/><circle cx="611.25" cy="77.7" r="3.2"/><circle cx="690" cy="63.1" r="3.2"/>
+              </g>
+
+              <!-- meses -->
+              <g class="eje" font-size="10.5" font-family="ui-monospace, monospace" text-anchor="middle">
+                <text x="60" y="214">mar</text><text x="138.75" y="214">abr</text><text x="217.5" y="214">may</text>
+                <text x="296.25" y="214">jun</text><text x="375" y="214">jul</text><text x="453.75" y="214">ago</text>
+                <text x="532.5" y="214">sep</text><text x="611.25" y="214">oct</text><text x="690" y="214">nov</text>
+              </g>
+
+              <!-- capa de interacción -->
+              <g id="zonas"></g>
+              <line id="riel" class="rejilla" x1="0" y1="20" x2="0" y2="180" stroke-width="1" opacity="0"/>
+            </svg>
+
+            <!-- tooltip -->
+            <div id="globo" class="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-[calc(100%+12px)] whitespace-nowrap rounded-md border border-line2 bg-card px-2.5 py-1.5 text-[11px] shadow-lg dark:border-edge2 dark:bg-panel">
+              <p id="globo-mes" class="font-mono text-[10px] uppercase tracking-wide text-soft dark:text-bonesoft"></p>
+              <p id="globo-val" class="tab mt-0.5 font-medium"></p>
+              <p id="globo-ext" class="tab text-[10px] text-soft dark:text-bonesoft"></p>
+            </div>
+            </div>
+          </div>
+
+          <!-- modelos activos -->
+          <div class="mt-3 rounded-lg border border-line bg-paper p-3 dark:border-edge dark:bg-night">
+            <p class="px-1 font-mono text-[10px] uppercase tracking-[0.1em] text-soft dark:text-bonesoft">Modelos activos</p>
+            <div class="tab mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div class="rounded border border-line px-2.5 py-2 dark:border-edge">
+                <p class="text-[12px] font-medium">Demanda</p>
+                <p class="mt-0.5 font-mono text-[10px] text-soft dark:text-bonesoft">error 6,8%</p>
+              </div>
+              <div class="rounded border border-line px-2.5 py-2 dark:border-edge">
+                <p class="text-[12px] font-medium">Churn</p>
+                <p class="mt-0.5 font-mono text-[10px] text-soft dark:text-bonesoft">AUC 0,82</p>
+              </div>
+              <div class="rounded border border-line px-2.5 py-2 dark:border-edge">
+                <p class="text-[12px] font-medium">Mora</p>
+                <p class="mt-0.5 font-mono text-[10px] text-soft dark:text-bonesoft">AUC 0,79</p>
+              </div>
+              <div class="rounded border border-line px-2.5 py-2 dark:border-edge">
+                <p class="text-[12px] font-medium">Anomalías</p>
+                <p class="mt-0.5 font-mono text-[10px] text-soft dark:text-bonesoft">4 series</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ columna derecha: alertas ═══ -->
+        <div class="p-4">
+          <div class="flex items-baseline justify-between px-1">
+            <p class="text-[12px] font-medium">Alertas y recomendaciones</p>
+            <p class="font-mono text-[10px] text-soft dark:text-bonesoft">4 abiertas</p>
+          </div>
+
+          <div class="mt-3 space-y-2.5">
+
+            <article class="rounded-lg border border-line bg-paper p-3.5 dark:border-edge dark:bg-night">
+              <div class="flex items-center gap-2">
+                <span class="h-2 w-2 shrink-0 rounded-full bg-grave dark:bg-grave2"></span>
+                <span class="font-mono text-[10px] uppercase tracking-[0.1em]">Crítico</span>
+                <span class="ml-auto font-mono text-[10px] text-soft dark:text-bonesoft">stock</span>
+              </div>
+              <p class="mt-2 text-[13px] leading-snug">
+                <span class="font-mono text-[12px]">SKU 4471</span> — quiebre estimado en <strong class="font-medium">9 días</strong>
+                con la demanda proyectada. El proveedor entrega en 14.
+              </p>
+              <p class="mt-2 inline-block rounded border border-line2 px-2 py-1 font-mono text-[10px] text-soft dark:border-edge2 dark:text-bonesoft">
+                → Emitir OC por 340 u. hoy
+              </p>
+            </article>
+
+            <article class="rounded-lg border border-line bg-paper p-3.5 dark:border-edge dark:bg-night">
+              <div class="flex items-center gap-2">
+                <span class="h-2 w-2 shrink-0 rounded-full bg-aviso dark:bg-aviso2"></span>
+                <span class="font-mono text-[10px] uppercase tracking-[0.1em]">Aviso</span>
+                <span class="ml-auto font-mono text-[10px] text-soft dark:text-bonesoft">clientes</span>
+              </div>
+              <p class="mt-2 text-[13px] leading-snug">
+                23 clientes bajaron su frecuencia de compra. Probabilidad de baja a 60 días:
+                <span class="tab font-medium">0,71</span>. Concentran el 18% de la facturación.
+              </p>
+              <p class="mt-2 inline-block rounded border border-line2 px-2 py-1 font-mono text-[10px] text-soft dark:border-edge2 dark:text-bonesoft">
+                → Asignar a Ventas · contacto esta semana
+              </p>
+            </article>
+
+            <article class="rounded-lg border border-line bg-paper p-3.5 dark:border-edge dark:bg-night">
+              <div class="flex items-center gap-2">
+                <span class="h-2 w-2 shrink-0 rounded-full bg-aviso dark:bg-aviso2"></span>
+                <span class="font-mono text-[10px] uppercase tracking-[0.1em]">Aviso</span>
+                <span class="ml-auto font-mono text-[10px] text-soft dark:text-bonesoft">cobranzas</span>
+              </div>
+              <p class="mt-2 text-[13px] leading-snug">
+                6 cuentas cruzaron el umbral de riesgo de mora. Exposición actual:
+                <span class="tab font-medium">$8,9 M</span>.
+              </p>
+              <p class="mt-2 inline-block rounded border border-line2 px-2 py-1 font-mono text-[10px] text-soft dark:border-edge2 dark:text-bonesoft">
+                → Frenar despachos a 2 cuentas
+              </p>
+            </article>
+
+            <article class="rounded-lg border border-line bg-paper p-3.5 dark:border-edge dark:bg-night">
+              <div class="flex items-center gap-2">
+                <span class="h-2 w-2 shrink-0 rounded-full border border-soft dark:border-bonesoft"></span>
+                <span class="font-mono text-[10px] uppercase tracking-[0.1em]">Anomalía</span>
+                <span class="ml-auto font-mono text-[10px] text-soft dark:text-bonesoft">sucursal</span>
+              </div>
+              <p class="mt-2 text-[13px] leading-snug">
+                Oeste vende 31% menos de lo esperado desde el 19/08. Las otras tres sucursales
+                están en rango.
+              </p>
+              <p class="mt-2 inline-block rounded border border-line2 px-2 py-1 font-mono text-[10px] text-soft dark:border-edge2 dark:text-bonesoft">
+                → Revisar con el encargado
+              </p>
+            </article>
+          </div>
+        </div>
+      </div>
+
+      <!-- barra de estado -->
+      <div class="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line bg-paper px-4 py-2.5 font-mono text-[11px] text-soft dark:border-edge dark:bg-night dark:text-bonesoft">
+        <span class="flex items-center gap-1.5">
+          <span class="h-1.5 w-1.5 rounded-full bg-bien dark:bg-bien2"></span>
+          Datos actualizados hace 14 min
+        </span>
+        <span class="hidden sm:inline">3 fuentes conectadas · ERP, e-commerce, cobranzas</span>
+        <span class="ml-auto hidden md:inline">Modelo de demanda reentrenado 24/08 · error medio 6,8%</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ LAS TRES CAPAS ══════════════════ -->
+<section id="capas" class="border-t border-line px-4 py-20 dark:border-edge sm:py-28">
+  <div class="mx-auto max-w-content">
+    <p class="reveal font-mono text-[11px] uppercase tracking-[0.16em] text-soft dark:text-bonesoft">Cómo funciona</p>
+    <h2 class="reveal mt-3 max-w-2xl font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.1]">Tres capas, y la tercera es la que importa.</h2>
+    <p class="reveal mt-5 max-w-2xl text-[15px] leading-relaxed text-soft dark:text-bonesoft">
+      Casi todas las herramientas del mercado se quedan en la primera. Un dashboard lindo no cambia
+      ninguna decisión si nadie lo abre un martes a las nueve de la mañana.
+    </p>
+
+    <div class="mt-14 space-y-5">
+
+      <!-- 01 -->
+      <article class="reveal grid gap-8 rounded-xl border border-line bg-card p-7 dark:border-edge dark:bg-panel sm:p-10 lg:grid-cols-[1fr_1.15fr]">
+        <div>
+          <span class="font-mono text-[11px] text-soft dark:text-bonesoft">01 · Descriptivo</span>
+          <h3 class="mt-3 font-display text-[1.7rem] font-semibold leading-tight tracking-tight sm:text-[2rem]">Qué está pasando.</h3>
+          <p class="mt-4 text-[15px] leading-relaxed text-soft dark:text-bonesoft">
+            Conectamos las fuentes que ya tenés — el ERP, el e-commerce, la planilla de cobranzas,
+            el sistema de facturación — y las unificamos en un modelo de datos único. Deja de haber
+            tres versiones del mismo número según quién la exportó.
+          </p>
+          <p class="mt-4 text-[15px] leading-relaxed text-soft dark:text-bonesoft">
+            Esta etapa es la menos vistosa y la que más trabajo lleva: códigos de producto que
+            cambiaron, clientes duplicados, devoluciones cargadas como ventas negativas. Si esto
+            queda mal, todo lo de arriba miente con más confianza.
+          </p>
+        </div>
+        <div class="rounded-lg border border-line2 bg-paper p-5 dark:border-edge2 dark:bg-night">
+          <p class="font-mono text-[11px] uppercase tracking-[0.12em] text-soft dark:text-bonesoft">De dónde salen los datos</p>
+          <dl class="mt-4 space-y-3 text-[14px]">
+            <div class="flex justify-between gap-4 border-b border-line pb-3 dark:border-edge">
+              <dt>ERP / gestión</dt><dd class="font-mono text-[12px] text-soft dark:text-bonesoft">base o exportación</dd>
+            </div>
+            <div class="flex justify-between gap-4 border-b border-line pb-3 dark:border-edge">
+              <dt>E-commerce</dt><dd class="font-mono text-[12px] text-soft dark:text-bonesoft">API</dd>
+            </div>
+            <div class="flex justify-between gap-4 border-b border-line pb-3 dark:border-edge">
+              <dt>Cobranzas</dt><dd class="font-mono text-[12px] text-soft dark:text-bonesoft">planilla o sistema</dd>
+            </div>
+            <div class="flex justify-between gap-4 border-b border-line pb-3 dark:border-edge">
+              <dt>Stock y depósito</dt><dd class="font-mono text-[12px] text-soft dark:text-bonesoft">base</dd>
+            </div>
+            <div class="flex justify-between gap-4">
+              <dt>Publicidad y tráfico</dt><dd class="font-mono text-[12px] text-soft dark:text-bonesoft">API</dd>
+            </div>
+          </dl>
+          <p class="mt-4 text-[13px] leading-relaxed text-soft dark:text-bonesoft">
+            Si una fuente no tiene forma de conectarse, se automatiza la exportación. Nada que
+            dependa de que alguien se acuerde de mandar un Excel los lunes.
+          </p>
+        </div>
+      </article>
+
+      <!-- 02 -->
+      <article class="reveal grid gap-8 rounded-xl border border-line bg-card p-7 dark:border-edge dark:bg-panel sm:p-10 lg:grid-cols-[1fr_1.15fr]">
+        <div>
+          <span class="font-mono text-[11px] text-soft dark:text-bonesoft">02 · Predictivo</span>
+          <h3 class="mt-3 font-display text-[1.7rem] font-semibold leading-tight tracking-tight sm:text-[2rem]">Qué probablemente va a pasar.</h3>
+          <p class="mt-4 text-[15px] leading-relaxed text-soft dark:text-bonesoft">
+            Sobre esos datos entrenamos modelos con tu historia, no con promedios de la industria.
+            Cada uno se valida contra meses que el modelo no vio antes de que lo veas vos, y
+            publicamos su error esperado al lado del número.
+          </p>
+          <p class="mt-4 text-[15px] leading-relaxed text-soft dark:text-bonesoft">
+            Una predicción con banda ancha es información igual: te dice que ese producto es
+            impredecible y que conviene tener más colchón, no menos.
+          </p>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2">
+          <div class="rounded-lg border border-line2 bg-paper p-4 dark:border-edge2 dark:bg-night">
+            <p class="text-[14px] font-medium">Demanda</p>
+            <p class="mt-1.5 text-[13px] leading-relaxed text-soft dark:text-bonesoft">Cuánto se va a vender por producto y por canal, con estacionalidad y efecto de promociones.</p>
+          </div>
+          <div class="rounded-lg border border-line2 bg-paper p-4 dark:border-edge2 dark:bg-night">
+            <p class="text-[14px] font-medium">Clientes en riesgo</p>
+            <p class="mt-1.5 text-[13px] leading-relaxed text-soft dark:text-bonesoft">Quién está por dejar de comprar, con semanas de anticipación y ordenado por lo que te cuesta perderlo.</p>
+          </div>
+          <div class="rounded-lg border border-line2 bg-paper p-4 dark:border-edge2 dark:bg-night">
+            <p class="text-[14px] font-medium">Quiebre de stock</p>
+            <p class="mt-1.5 text-[13px] leading-relaxed text-soft dark:text-bonesoft">Qué se va a agotar antes de que llegue la reposición, cruzando demanda proyectada con lead time real del proveedor.</p>
+          </div>
+          <div class="rounded-lg border border-line2 bg-paper p-4 dark:border-edge2 dark:bg-night">
+            <p class="text-[14px] font-medium">Mora</p>
+            <p class="mt-1.5 text-[13px] leading-relaxed text-soft dark:text-bonesoft">Qué cuentas probablemente no van a pagar en término, antes de despacharles más mercadería.</p>
+          </div>
+          <div class="rounded-lg border border-line2 bg-paper p-4 dark:border-edge2 dark:bg-night sm:col-span-2">
+            <p class="text-[14px] font-medium">Anomalías</p>
+            <p class="mt-1.5 text-[13px] leading-relaxed text-soft dark:text-bonesoft">Cualquier serie que se salga de lo esperado — una sucursal, un canal, un margen — sin que nadie haya definido la regla de antemano.</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- 03 -->
+      <article class="reveal grid gap-8 rounded-xl border border-line bg-card p-7 dark:border-edge dark:bg-panel sm:p-10 lg:grid-cols-[1fr_1.15fr]">
+        <div>
+          <span class="font-mono text-[11px] text-soft dark:text-bonesoft">03 · Accionable</span>
+          <h3 class="mt-3 font-display text-[1.7rem] font-semibold leading-tight tracking-tight sm:text-[2rem]">Qué conviene hacer.</h3>
+          <p class="mt-4 text-[15px] leading-relaxed text-soft dark:text-bonesoft">
+            Cada predicción que cruza un umbral se convierte en una alerta con destinatario: le
+            llega a la persona que puede hacer algo, por el canal que esa persona usa —
+            correo, WhatsApp o Slack — y con la acción concreta sugerida.
+          </p>
+          <p class="mt-4 text-[15px] leading-relaxed text-soft dark:text-bonesoft">
+            Las alertas se cierran: quién la atendió, qué hizo y qué pasó después. Eso también es
+            un dato, y sirve para afinar los umbrales y para discutir con números si la
+            recomendación servía o era ruido.
+          </p>
+        </div>
+        <div class="flex flex-col justify-center gap-3 rounded-lg border border-line2 bg-paper p-5 dark:border-edge2 dark:bg-night">
+          <div class="flex items-center gap-3 rounded-md border border-line bg-card px-3.5 py-3 dark:border-edge dark:bg-panel">
+            <span class="font-mono text-[11px] text-soft dark:text-bonesoft">1</span>
+            <p class="text-[13px]">El modelo detecta el quiebre a 9 días</p>
+          </div>
+          <div class="flex items-center gap-3 rounded-md border border-line bg-card px-3.5 py-3 dark:border-edge dark:bg-panel">
+            <span class="font-mono text-[11px] text-soft dark:text-bonesoft">2</span>
+            <p class="text-[13px]">Cruza el umbral definido con Compras</p>
+          </div>
+          <div class="flex items-center gap-3 rounded-md border border-line bg-card px-3.5 py-3 dark:border-edge dark:bg-panel">
+            <span class="font-mono text-[11px] text-soft dark:text-bonesoft">3</span>
+            <p class="text-[13px]">Le llega a Compras con la OC sugerida</p>
+          </div>
+          <div class="flex items-center gap-3 rounded-md border border-bien/30 bg-bien/[0.06] px-3.5 py-3 dark:border-bien2/30 dark:bg-bien2/[0.07]">
+            <span class="font-mono text-[11px] text-soft dark:text-bonesoft">4</span>
+            <p class="text-[13px]">Se cierra con lo que efectivamente se hizo</p>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <!-- secundarios -->
+    <div class="reveal mt-14">
+      <p class="font-mono text-[11px] uppercase tracking-[0.16em] text-soft dark:text-bonesoft">Lo que hace la plataforma sin que la mires</p>
+      <dl class="mt-6 grid gap-x-10 gap-y-7 border-t border-line pt-7 dark:border-edge sm:grid-cols-2 lg:grid-cols-3">
+        <div>
+          <dt class="text-[15px] font-medium">Reentrenamiento programado</dt>
+          <dd class="mt-1.5 text-[14px] leading-relaxed text-soft dark:text-bonesoft">Los modelos se actualizan con los datos nuevos según su ciclo, no cuando alguien se acuerda.</dd>
+        </div>
+        <div>
+          <dt class="text-[15px] font-medium">Monitoreo de deriva</dt>
+          <dd class="mt-1.5 text-[14px] leading-relaxed text-soft dark:text-bonesoft">Si el error de un modelo empieza a crecer, salta antes de que te haga tomar una mala decisión. Nosotros lo vemos primero.</dd>
+        </div>
+        <div>
+          <dt class="text-[15px] font-medium">Control de calidad del dato</dt>
+          <dd class="mt-1.5 text-[14px] leading-relaxed text-soft dark:text-bonesoft">Si una fuente deja de actualizar o llega con la mitad de las filas, el sistema avisa en lugar de calcular sobre datos incompletos.</dd>
+        </div>
+        <div>
+          <dt class="text-[15px] font-medium">Accesos por rol</dt>
+          <dd class="mt-1.5 text-[14px] leading-relaxed text-soft dark:text-bonesoft">Compras ve stock, Cobranzas ve mora, la dirección ve todo. Cada acceso es nominal y queda registrado.</dd>
+        </div>
+        <div>
+          <dt class="text-[15px] font-medium">Historial de versiones</dt>
+          <dd class="mt-1.5 text-[14px] leading-relaxed text-soft dark:text-bonesoft">Qué predijo el modelo el mes pasado y qué pasó de verdad. Sin eso no hay manera honesta de saber si sirve.</dd>
+        </div>
+        <div>
+          <dt class="text-[15px] font-medium">Exportación completa</dt>
+          <dd class="mt-1.5 text-[14px] leading-relaxed text-soft dark:text-bonesoft">Las tablas limpias y los resultados salen en CSV o por conexión directa, para que los uses donde quieras.</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ EN USO ══════════════════ -->
+<section id="en-uso" class="border-t border-line bg-card/60 px-4 py-20 dark:border-edge dark:bg-panel/40 sm:py-28">
+  <div class="mx-auto max-w-content">
+    <p class="reveal font-mono text-[11px] uppercase tracking-[0.16em] text-soft dark:text-bonesoft">Cómo se ve en uso</p>
+    <h2 class="reveal mt-3 max-w-2xl font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.1]">Un martes cualquiera, a las nueve.</h2>
+
+    <div class="mt-12 grid gap-12 lg:grid-cols-[1fr_1.1fr]">
+      <ol class="reveal space-y-7">
+        <li class="flex gap-5">
+          <span class="mt-0.5 font-mono text-[12px] text-soft dark:text-bonesoft">01</span>
+          <div>
+            <p class="text-[15px] font-medium">Nadie abre la plataforma. La plataforma escribe primero.</p>
+            <p class="mt-1.5 text-[14px] leading-relaxed text-soft dark:text-bonesoft">A Compras le llega una alerta: dos productos se agotan antes de que llegue la reposición. No es un resumen semanal, es lo que hay que resolver hoy.</p>
+          </div>
+        </li>
+        <li class="flex gap-5">
+          <span class="mt-0.5 font-mono text-[12px] text-soft dark:text-bonesoft">02</span>
+          <div>
+            <p class="text-[15px] font-medium">Abre la alerta y ve por qué.</p>
+            <p class="mt-1.5 text-[14px] leading-relaxed text-soft dark:text-bonesoft">La demanda proyectada, el stock actual, el lead time real del proveedor — no el que dice el contrato — y qué pasó las últimas tres veces que se pidió tarde.</p>
+          </div>
+        </li>
+        <li class="flex gap-5">
+          <span class="mt-0.5 font-mono text-[12px] text-soft dark:text-bonesoft">03</span>
+          <div>
+            <p class="text-[15px] font-medium">Decide con el número a la vista, o lo descarta.</p>
+            <p class="mt-1.5 text-[14px] leading-relaxed text-soft dark:text-bonesoft">Emite la orden por la cantidad sugerida, la ajusta, o marca que ese proveedor ya avisó que viene demorado. Las tres cosas quedan registradas.</p>
+          </div>
+        </li>
+        <li class="flex gap-5">
+          <span class="mt-0.5 font-mono text-[12px] text-soft dark:text-bonesoft">04</span>
+          <div>
+            <p class="text-[15px] font-medium">La dirección ve el conjunto, no el detalle.</p>
+            <p class="mt-1.5 text-[14px] leading-relaxed text-soft dark:text-bonesoft">Proyección del trimestre, clientes en riesgo ordenados por facturación, y qué alertas quedaron sin atender. Eso último suele ser la conversación más útil del mes.</p>
+          </div>
+        </li>
+        <li class="flex gap-5">
+          <span class="mt-0.5 font-mono text-[12px] text-soft dark:text-bonesoft">05</span>
+          <div>
+            <p class="text-[15px] font-medium">A fin de mes se compara contra la realidad.</p>
+            <p class="mt-1.5 text-[14px] leading-relaxed text-soft dark:text-bonesoft">Qué proyectó el modelo, qué pasó, cuánto se erró. Si el error creció, lo vemos nosotros y lo corregimos: eso es parte del fee mensual, no un proyecto nuevo.</p>
+          </div>
+        </li>
+      </ol>
+
+      <div class="space-y-6">
+        <!-- placeholder de video -->
+        <div class="reveal">
+          <!-- ▓▓ PLACEHOLDER: reemplazar por el <video> de 60 s ▓▓ -->
+          <div class="flex aspect-video flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-line2 bg-paper p-6 text-center dark:border-edge2 dark:bg-night">
+            <span class="font-mono text-[11px] uppercase tracking-[0.16em] text-soft dark:text-bonesoft">[ placeholder — video 60 s ]</span>
+            <p class="max-w-sm text-[14px] leading-relaxed text-soft dark:text-bonesoft">
+              Recorrido real: llega la alerta de quiebre, se abre y se ve la demanda proyectada
+              contra el stock, se emite la orden sugerida y se cierra la alerta. Después, la vista
+              de dirección con la proyección del trimestre. Sin voz en off.
+            </p>
+            <p class="font-mono text-[11px] text-soft/70 dark:text-bonesoft/70">1920×1080 · sin audio · autoplay en loop</p>
+          </div>
+        </div>
+
+        <!-- anatomía de una alerta -->
+        <div class="reveal rounded-xl border border-line bg-card p-5 dark:border-edge dark:bg-panel">
+          <p class="font-mono text-[11px] uppercase tracking-[0.14em] text-soft dark:text-bonesoft">Anatomía de una alerta</p>
+          <div class="mt-3 rounded-lg border border-line2 bg-paper p-4 dark:border-edge2 dark:bg-night">
+            <div class="flex items-center gap-2">
+              <span class="h-2 w-2 shrink-0 rounded-full bg-grave dark:bg-grave2"></span>
+              <span class="font-mono text-[10px] uppercase tracking-[0.1em]">Crítico</span>
+              <span class="ml-auto font-mono text-[10px] text-soft dark:text-bonesoft">para: Compras · 27/08 09:04</span>
+            </div>
+            <p class="mt-3 text-[14px] font-medium">Aceite 5 L (SKU 4471) se agota el 05/09.</p>
+            <dl class="mt-3 space-y-1.5 border-t border-line pt-3 text-[13px] dark:border-edge">
+              <div class="flex justify-between gap-4"><dt class="text-soft dark:text-bonesoft">Stock hoy</dt><dd class="tab">612 u.</dd></div>
+              <div class="flex justify-between gap-4"><dt class="text-soft dark:text-bonesoft">Demanda proyectada 9 d</dt><dd class="tab">608 u. · banda 540 – 690</dd></div>
+              <div class="flex justify-between gap-4"><dt class="text-soft dark:text-bonesoft">Lead time real</dt><dd class="tab">14 d (contrato: 7)</dd></div>
+              <div class="flex justify-between gap-4"><dt class="text-soft dark:text-bonesoft">Error del modelo</dt><dd class="tab">6,8% últimos 3 meses</dd></div>
+            </dl>
+            <div class="mt-3 flex flex-wrap gap-2 border-t border-line pt-3 font-mono text-[11px] dark:border-edge">
+              <span class="rounded border border-line2 px-2 py-1 dark:border-edge2">Emitir OC · 340 u.</span>
+              <span class="rounded border border-line2 px-2 py-1 dark:border-edge2">Ajustar cantidad</span>
+              <span class="rounded border border-line2 px-2 py-1 dark:border-edge2">Descartar y decir por qué</span>
+            </div>
+          </div>
+          <p class="mt-3 px-1 text-[13px] leading-relaxed text-soft dark:text-bonesoft">
+            El error del modelo va en la alerta a propósito. Una recomendación sin margen de error
+            declarado se lee como una certeza, y no lo es.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ IMPLEMENTACIÓN ══════════════════ -->
+<section id="implementacion" class="border-t border-line px-4 py-20 dark:border-edge sm:py-28">
+  <div class="mx-auto max-w-content">
+    <p class="reveal font-mono text-[11px] uppercase tracking-[0.16em] text-soft dark:text-bonesoft">Implementación</p>
+    <h2 class="reveal mt-3 max-w-2xl font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.1]">De la primera reunión a la primera alerta útil.</h2>
+    <p class="reveal mt-5 max-w-2xl text-[15px] leading-relaxed text-soft dark:text-bonesoft">
+      Entre seis y diez semanas, según en qué estado estén tus datos. El diagnóstico inicial existe
+      justamente para decirte de antemano en qué extremo de ese rango vas a caer.
+    </p>
+
+    <ol class="reveal mt-12 grid gap-px overflow-hidden rounded-xl border border-line bg-line dark:border-edge dark:bg-edge md:grid-cols-2 lg:grid-cols-5">
+      <li class="bg-card p-6 dark:bg-panel">
+        <p class="font-mono text-[11px] text-soft dark:text-bonesoft">Semana 1 – 2</p>
+        <p class="mt-2 text-[15px] font-medium">Conexión</p>
+        <p class="mt-2 text-[14px] leading-relaxed text-soft dark:text-bonesoft">Relevamos de dónde sale cada dato y quién lo carga. Conectamos las fuentes y hacemos el primer volcado completo.</p>
+      </li>
+      <li class="bg-card p-6 dark:bg-panel">
+        <p class="font-mono text-[11px] text-soft dark:text-bonesoft">Semana 2 – 4</p>
+        <p class="mt-2 text-[15px] font-medium">Limpieza</p>
+        <p class="mt-2 text-[14px] leading-relaxed text-soft dark:text-bonesoft">La parte fea: duplicados, códigos que cambiaron, criterios que nadie escribió. Acá se define si el resto sirve.</p>
+      </li>
+      <li class="bg-card p-6 dark:bg-panel">
+        <p class="font-mono text-[11px] text-soft dark:text-bonesoft">Semana 4 – 6</p>
+        <p class="mt-2 text-[15px] font-medium">Dashboards</p>
+        <p class="mt-2 text-[14px] leading-relaxed text-soft dark:text-bonesoft">Una sola versión de los números, con los cortes que tu equipo pide de verdad. Desde acá ya deja de discutirse cuánto se vendió.</p>
+      </li>
+      <li class="bg-card p-6 dark:bg-panel">
+        <p class="font-mono text-[11px] text-soft dark:text-bonesoft">Semana 6 – 10</p>
+        <p class="mt-2 text-[15px] font-medium">Primeros modelos</p>
+        <p class="mt-2 text-[14px] leading-relaxed text-soft dark:text-bonesoft">Arrancamos con dos, los que más plata muevan en tu caso. Se validan contra meses reales antes de que alguien decida con ellos.</p>
+      </li>
+      <li class="bg-card p-6 dark:bg-panel">
+        <p class="font-mono text-[11px] text-soft dark:text-bonesoft">Mes 3 en adelante</p>
+        <p class="mt-2 text-[15px] font-medium">Operación</p>
+        <p class="mt-2 text-[14px] leading-relaxed text-soft dark:text-bonesoft">Umbrales afinados con el uso, reentrenamientos, modelos nuevos. Esto es lo que cubre el fee mensual.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ══════════════════ REQUISITOS ══════════════════ -->
+<section id="requisitos" class="border-t border-line bg-card/60 px-4 py-20 dark:border-edge dark:bg-panel/40 sm:py-28">
+  <div class="mx-auto max-w-content">
+    <div class="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
+      <div class="reveal">
+        <p class="font-mono text-[11px] uppercase tracking-[0.16em] text-soft dark:text-bonesoft">Requisitos</p>
+        <h2 class="mt-3 font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.1]">Esto no le sirve a cualquier empresa.</h2>
+        <p class="mt-5 text-[15px] leading-relaxed text-soft dark:text-bonesoft">
+          Un modelo predictivo no arregla datos que no existen. Si tu empresa no cumple con lo de
+          la derecha, lo que necesitás primero es ordenar cómo se registra la operación — y eso es
+          otro trabajo, más barato y menos glamoroso.
+        </p>
+        <p class="mt-4 text-[15px] leading-relaxed text-soft dark:text-bonesoft">
+          Preferimos decírtelo en la primera reunión y no cobrarte una implementación que va a
+          terminar en un dashboard lindo que nadie abre. Si estás en el borde, el diagnóstico te
+          lo dice con números.
+        </p>
+      </div>
+
+      <div class="reveal divide-y divide-line rounded-xl border border-line bg-card dark:divide-edge dark:border-edge dark:bg-panel">
+        <div class="p-6">
+          <p class="text-[15px] font-medium">Historia suficiente</p>
+          <p class="mt-1.5 text-[14px] leading-relaxed text-soft dark:text-bonesoft">
+            Entre 18 y 24 meses de operaciones registradas. Con menos, el modelo no llega a ver un
+            ciclo completo y no distingue una caída real de la baja de enero.
+          </p>
+        </div>
+        <div class="p-6">
+          <p class="text-[15px] font-medium">Datos que se puedan extraer</p>
+          <p class="mt-1.5 text-[14px] leading-relaxed text-soft dark:text-bonesoft">
+            Acceso de lectura a la base del ERP, una API, o al menos exportaciones que se puedan
+            automatizar. Si el dato solo existe en la cabeza del encargado de depósito, no entra
+            al sistema.
+          </p>
+        </div>
+        <div class="p-6">
+          <p class="text-[15px] font-medium">Volumen que justifique el modelo</p>
+          <p class="mt-1.5 text-[14px] leading-relaxed text-soft dark:text-bonesoft">
+            Decenas de operaciones por día, cientos de clientes o cientos de SKU. Si vendés seis
+            operaciones grandes por mes, las decidís mejor con una reunión que con un modelo.
+          </p>
+        </div>
+        <div class="p-6">
+          <p class="text-[15px] font-medium">Alguien adentro que sea dueño del proyecto</p>
+          <p class="mt-1.5 text-[14px] leading-relaxed text-soft dark:text-bonesoft">
+            Una persona con unas dos horas por semana durante la implementación, que conozca la
+            operación y pueda conseguirnos los accesos sin escalar tres niveles cada vez.
+          </p>
+        </div>
+        <div class="p-6">
+          <p class="text-[15px] font-medium">Alguien que pueda decidir</p>
+          <p class="mt-1.5 text-[14px] leading-relaxed text-soft dark:text-bonesoft">
+            Una alerta que llega a quien no tiene autoridad para actuar es ruido caro. Antes de
+            prender cada alerta definimos quién la recibe y qué puede hacer con ella.
+          </p>
+        </div>
+        <div class="p-6">
+          <p class="text-[15px] font-medium">Tolerancia a los dos primeros meses</p>
+          <p class="mt-1.5 text-[14px] leading-relaxed text-soft dark:text-bonesoft">
+            Al principio los modelos van a estar flojos y los umbrales mal calibrados. Mejoran con
+            uso y con datos. Si necesitás resultados en tres semanas, no somos lo que buscás.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ PRECIO ══════════════════ -->
+<section id="precio" class="border-t border-line px-4 py-20 dark:border-edge sm:py-28">
+  <div class="mx-auto max-w-content">
+    <p class="reveal font-mono text-[11px] uppercase tracking-[0.16em] text-soft dark:text-bonesoft">Precio y modelo</p>
+    <h2 class="reveal mt-3 max-w-3xl font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.1]">Una implementación y después un abono. Sin vueltas.</h2>
+    <p class="reveal mt-5 max-w-2xl text-[15px] leading-relaxed text-soft dark:text-bonesoft">
+      No vendemos horas de data science ni un proyecto que se entrega y se termina. Se paga una vez
+      por conectar y ordenar tus datos, y después un abono mensual por tener el sistema andando,
+      monitoreado y mejorando.
+    </p>
+    <p class="reveal mt-4 max-w-2xl text-[15px] leading-relaxed text-soft dark:text-bonesoft">
+      El abono no es un alquiler encubierto: un modelo que no se reentrena se degrada solo, porque
+      cambian tus precios, tu catálogo y tus clientes. Si nadie lo mira, en seis meses te está
+      recomendando con datos del año pasado.
+    </p>
+
+    <div class="mt-12 grid gap-5 lg:grid-cols-3">
+      <div class="reveal rounded-xl border border-line bg-card p-7 dark:border-edge dark:bg-panel">
+        <p class="font-mono text-[11px] uppercase tracking-[0.14em] text-soft dark:text-bonesoft">Diagnóstico</p>
+        <p class="mt-4 font-display text-[2.1rem] font-semibold tracking-tight">Sin costo</p>
+        <p class="mt-1 font-mono text-[12px] text-soft dark:text-bonesoft">1 a 2 semanas</p>
+        <ul class="mt-6 space-y-2.5 border-t border-line pt-6 text-[14px] leading-relaxed text-soft dark:border-edge dark:text-bonesoft">
+          <li>Miramos tus datos reales, no una demo</li>
+          <li>Qué modelos tienen sentido en tu caso y cuáles no</li>
+          <li>Qué se puede predecir con lo que hoy registrás</li>
+          <li>Presupuesto cerrado de implementación y abono</li>
+          <li>Si no da, te lo decimos y no seguimos</li>
+        </ul>
+        <a href="mailto:hola@ejemplo.com?subject=Diagn%C3%B3stico%20de%20datos" class="mt-7 block rounded-lg border border-line2 px-4 py-3 text-center text-[14px] font-medium transition hover:bg-paper dark:border-edge2 dark:hover:bg-night">Pedirlo</a>
+      </div>
+
+      <div class="reveal rounded-xl border-2 border-ink bg-card p-7 dark:border-bone dark:bg-panel">
+        <p class="font-mono text-[11px] uppercase tracking-[0.14em] text-soft dark:text-bonesoft">Implementación</p>
+        <!-- TODO: definir el número o el rango antes de publicar -->
+        <p class="mt-4 font-display text-[2.1rem] font-semibold tracking-tight">Pago único</p>
+        <p class="mt-1 font-mono text-[12px] text-soft dark:text-bonesoft">según fuentes y estado de los datos</p>
+        <ul class="mt-6 space-y-2.5 border-t border-line pt-6 text-[14px] leading-relaxed text-soft dark:border-edge dark:text-bonesoft">
+          <li>Conexión de todas las fuentes acordadas</li>
+          <li>Limpieza y modelo de datos unificado</li>
+          <li>Dashboards con los cortes de tu operación</li>
+          <li>Dos modelos predictivos validados</li>
+          <li>Alertas configuradas con cada área</li>
+          <li>Capacitación al equipo, grabada</li>
+        </ul>
+        <a href="mailto:hola@ejemplo.com?subject=Implementaci%C3%B3n" class="mt-7 block rounded-lg bg-ink px-4 py-3 text-center text-[14px] font-medium text-paper transition hover:opacity-90 dark:bg-bone dark:text-night">Hablemos del alcance</a>
+      </div>
+
+      <div class="reveal rounded-xl border border-line bg-card p-7 dark:border-edge dark:bg-panel">
+        <p class="font-mono text-[11px] uppercase tracking-[0.14em] text-soft dark:text-bonesoft">Abono mensual</p>
+        <!-- TODO: definir el número antes de publicar -->
+        <p class="mt-4 font-display text-[2.1rem] font-semibold tracking-tight">Mensual</p>
+        <p class="mt-1 font-mono text-[12px] text-soft dark:text-bonesoft">según volumen y modelos activos</p>
+        <ul class="mt-6 space-y-2.5 border-t border-line pt-6 text-[14px] leading-relaxed text-soft dark:border-edge dark:text-bonesoft">
+          <li>Infraestructura y datos siempre actualizados</li>
+          <li>Reentrenamiento y monitoreo de deriva</li>
+          <li>Modelos nuevos según lo que vaya pidiendo tu operación</li>
+          <li>Soporte con tiempo de respuesta acordado</li>
+          <li>Reporte mensual de qué predijo y qué pasó</li>
+        </ul>
+        <a href="mailto:hola@ejemplo.com?subject=Abono%20mensual" class="mt-7 block rounded-lg border border-line2 px-4 py-3 text-center text-[14px] font-medium transition hover:bg-paper dark:border-edge2 dark:hover:bg-night">Ver qué incluye</a>
+      </div>
+    </div>
+
+    <div class="reveal mt-6 rounded-xl border border-line bg-card p-6 dark:border-edge dark:bg-panel sm:p-8">
+      <p class="text-[15px] font-medium">Por qué te conviene que ya lo hayamos hecho antes</p>
+      <p class="mt-3 max-w-3xl text-[15px] leading-relaxed text-soft dark:text-bonesoft">
+        El motor es el mismo para todas las empresas que se parecen entre sí: una distribuidora
+        tiene los mismos problemas de stock y de mora que otra distribuidora. Lo que se construye
+        a medida es la conexión con tus sistemas y el ajuste a tu operación, no la plataforma
+        entera. Por eso, cuanto más parecida sea tu empresa a una donde ya implementamos, más
+        barata y más rápida es tu implementación — y te lo decimos en el diagnóstico, con el
+        número.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ FAQ ══════════════════ -->
+<section id="faq" class="border-t border-line bg-card/60 px-4 py-20 dark:border-edge dark:bg-panel/40 sm:py-28">
+  <div class="mx-auto max-w-content">
+    <div class="grid gap-12 lg:grid-cols-[0.8fr_1.4fr]">
+      <div class="reveal">
+        <p class="font-mono text-[11px] uppercase tracking-[0.16em] text-soft dark:text-bonesoft">Preguntas</p>
+        <h2 class="mt-3 font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.1]">Lo que preguntan antes de firmar.</h2>
+      </div>
+
+      <div class="reveal divide-y divide-line border-y border-line dark:divide-edge dark:border-edge">
+        <details class="group">
+          <summary class="flex items-start justify-between gap-6 py-5">
+            <span class="text-[16px] font-medium">¿Quién ve mis datos?</span>
+            <span class="mas mt-1 shrink-0 text-soft transition-transform duration-200 dark:text-bonesoft" aria-hidden="true">
+              <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M3 8h10" stroke-linecap="round"/></svg>
+            </span>
+          </summary>
+          <div class="pb-6 pr-8 text-[15px] leading-relaxed text-soft dark:text-bonesoft">
+            <p>Cada cliente corre en su propia instancia, con su base separada. Los datos van
+            cifrados en tránsito y en reposo, y los accesos son nominales y quedan auditados: se
+            puede saber quién miró qué y cuándo.</p>
+            <p class="mt-3">De nuestro lado acceden solo las personas asignadas a tu cuenta, y para
+            tareas de operación. Si tu política interna lo exige, la plataforma se puede desplegar
+            en tu propia nube o en tu servidor, y ahí el acceso lo controlás vos entero.</p>
+          </div>
+        </details>
+
+        <details class="group">
+          <summary class="flex items-start justify-between gap-6 py-5">
+            <span class="text-[16px] font-medium">¿Usan mis datos para mejorar el producto de otros clientes?</span>
+            <span class="mas mt-1 shrink-0 text-soft transition-transform duration-200 dark:text-bonesoft" aria-hidden="true">
+              <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M3 8h10" stroke-linecap="round"/></svg>
+            </span>
+          </summary>
+          <div class="pb-6 pr-8 text-[15px] leading-relaxed text-soft dark:text-bonesoft">
+            <p>No. Lo que se comparte entre clientes es el código de la plataforma: los conectores,
+            los tipos de modelo, la lógica de alertas. Tus datos y los modelos entrenados con tus
+            datos son tuyos y no salen de tu instancia.</p>
+            <p class="mt-3">Esto va escrito en el contrato, no es una promesa de landing. Si querés
+            que lo digamos con más precisión legal, lo revisamos con tu abogado antes de firmar.</p>
+          </div>
+        </details>
+
+        <details class="group">
+          <summary class="flex items-start justify-between gap-6 py-5">
+            <span class="text-[16px] font-medium">¿Qué pasa cuando el modelo se equivoca?</span>
+            <span class="mas mt-1 shrink-0 text-soft transition-transform duration-200 dark:text-bonesoft" aria-hidden="true">
+              <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M3 8h10" stroke-linecap="round"/></svg>
+            </span>
+          </summary>
+          <div class="pb-6 pr-8 text-[15px] leading-relaxed text-soft dark:text-bonesoft">
+            <p>Se va a equivocar, y bastante seguido. Por eso cada número va con su banda y con el
+            error medido de los últimos meses. Una probabilidad de 0,71 no es una certeza: sirve
+            para decidir a qué veinte clientes llamás primero, no para reemplazar el criterio de
+            quien conoce la cuenta.</p>
+            <p class="mt-3">Lo que sí garantizamos es que el error esté a la vista y monitoreado.
+            Si un modelo se degrada, salta la alerta de nuestro lado y lo corregimos; si no se
+            puede corregir, lo apagamos y te lo decimos, en vez de dejarlo recomendando mal.</p>
+          </div>
+        </details>
+
+        <details class="group">
+          <summary class="flex items-start justify-between gap-6 py-5">
+            <span class="text-[16px] font-medium">¿Necesito contratar a alguien de datos para usarlo?</span>
+            <span class="mas mt-1 shrink-0 text-soft transition-transform duration-200 dark:text-bonesoft" aria-hidden="true">
+              <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M3 8h10" stroke-linecap="round"/></svg>
+            </span>
+          </summary>
+          <div class="pb-6 pr-8 text-[15px] leading-relaxed text-soft dark:text-bonesoft">
+            <p>No, para eso es el abono: la parte técnica la sostenemos nosotros. Lo que sí
+            necesitás es alguien de tu empresa que conozca la operación y pueda decidir sobre lo
+            que las alertas proponen.</p>
+            <p class="mt-3">La diferencia importa: no hace falta que nadie entienda cómo funciona
+            el modelo, hace falta que alguien tenga la autoridad para actuar cuando el modelo
+            avisa.</p>
+          </div>
+        </details>
+
+        <details class="group">
+          <summary class="flex items-start justify-between gap-6 py-5">
+            <span class="text-[16px] font-medium">¿En cuánto tiempo se paga solo?</span>
+            <span class="mas mt-1 shrink-0 text-soft transition-transform duration-200 dark:text-bonesoft" aria-hidden="true">
+              <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M3 8h10" stroke-linecap="round"/></svg>
+            </span>
+          </summary>
+          <div class="pb-6 pr-8 text-[15px] leading-relaxed text-soft dark:text-bonesoft">
+            <p>Depende de tu operación y no te lo vamos a prometer en un número redondo. Lo que sí
+            podemos anticipar es el orden: los dashboards ordenan discusiones desde la semana seis,
+            y las predicciones empiezan a servir de verdad entre el segundo y el tercer mes, cuando
+            los umbrales ya se calibraron con uso real.</p>
+            <p class="mt-3">En el diagnóstico estimamos el impacto sobre casos concretos tuyos —
+            cuánto te costaron los quiebres del último año, cuánto facturaban los clientes que
+            perdiste. Eso es una estimación con tus números, no un promedio de industria.</p>
+          </div>
+        </details>
+
+        <details class="group">
+          <summary class="flex items-start justify-between gap-6 py-5">
+            <span class="text-[16px] font-medium">¿Y si un día queremos dejarlo?</span>
+            <span class="mas mt-1 shrink-0 text-soft transition-transform duration-200 dark:text-bonesoft" aria-hidden="true">
+              <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M3 8h10" stroke-linecap="round"/></svg>
+            </span>
+          </summary>
+          <div class="pb-6 pr-8 text-[15px] leading-relaxed text-soft dark:text-bonesoft">
+            <p>Te llevás las tablas limpias, el modelo de datos documentado y el histórico completo,
+            en formato abierto. Lo que ordenamos de tu información sigue siendo útil aunque nosotros
+            no estemos: esa es la parte que más cuesta construir y no la retenemos.</p>
+            <p class="mt-3">No secuestramos la base ni cobramos por exportar. Si nos querés dejar,
+            preferimos que sea porque encontraste algo mejor y no porque no podías irte.</p>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ CIERRE ══════════════════ -->
+<section class="border-t border-line px-4 py-20 dark:border-edge sm:py-24">
+  <div class="reveal mx-auto max-w-content rounded-xl border border-line bg-card p-8 dark:border-edge dark:bg-panel sm:p-12">
+    <div class="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+      <div class="max-w-xl">
+        <h2 class="font-display text-3xl font-semibold tracking-tight sm:text-[2.3rem] sm:leading-[1.12]">Empecemos por mirar tus datos.</h2>
+        <p class="mt-4 text-[15px] leading-relaxed text-soft dark:text-bonesoft">
+          El diagnóstico es sin costo y termina en un documento concreto: qué se puede predecir hoy
+          con lo que registrás, qué habría que arreglar primero, y cuánto costaría. Si la respuesta
+          es que todavía no da, también te lo damos por escrito.
+        </p>
+      </div>
+      <div class="shrink-0">
+        <a href="mailto:hola@ejemplo.com?subject=Diagn%C3%B3stico%20de%20datos"
+           class="block rounded-lg bg-ink px-6 py-3.5 text-center text-[15px] font-medium text-paper transition hover:opacity-90 dark:bg-bone dark:text-night">
+          Pedir un diagnóstico
+        </a>
+        <p class="mt-3 text-center font-mono text-[11px] text-soft dark:text-bonesoft">Contestamos en el día</p>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ══════════════════ PIE ══════════════════ -->
+<footer class="border-t border-line px-4 py-12 dark:border-edge">
+  <div class="mx-auto flex max-w-content flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
+    <div>
+      <p class="font-display text-[17px] font-semibold tracking-tight">Proyecciones</p>
+      <p class="mt-2 max-w-xs text-[14px] leading-relaxed text-soft dark:text-bonesoft">
+        Sistema de soporte a decisiones para empresas que ya generan datos y todavía no los usan.
+      </p>
+      <p class="mt-4 font-mono text-[11px] text-soft dark:text-bonesoft">Buenos Aires, Argentina</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-x-12 gap-y-2 text-[14px] sm:gap-x-16">
+      <!-- TODO: enlaces reales -->
+      <a href="/privacidad" class="text-soft transition hover:text-ink dark:text-bonesoft dark:hover:text-bone">Privacidad</a>
+      <a href="/seguridad" class="text-soft transition hover:text-ink dark:text-bonesoft dark:hover:text-bone">Seguridad</a>
+      <a href="/terminos" class="text-soft transition hover:text-ink dark:text-bonesoft dark:hover:text-bone">Términos</a>
+      <a href="/tratamiento-de-datos" class="text-soft transition hover:text-ink dark:text-bonesoft dark:hover:text-bone">Tratamiento de datos</a>
+      <a href="#faq" class="text-soft transition hover:text-ink dark:text-bonesoft dark:hover:text-bone">Preguntas</a>
+      <a href="mailto:hola@ejemplo.com" class="text-soft transition hover:text-ink dark:text-bonesoft dark:hover:text-bone">Contacto</a>
+    </div>
+
+    <div class="max-w-[16rem] rounded-lg border border-line bg-card p-4 dark:border-edge dark:bg-panel">
+      <p class="text-[14px] font-medium">Del otro lado hay una persona</p>
+      <p class="mt-1.5 text-[13px] leading-relaxed text-soft dark:text-bonesoft">
+        No hay bot ni formulario que caiga en un CRM. Escribís y te contesta alguien del equipo que
+        implementa.
+      </p>
+      <a href="mailto:hola@ejemplo.com" class="mt-3 inline-block font-mono text-[12px] text-bien underline underline-offset-4 dark:text-bien2">hola@ejemplo.com</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ── Tema ──
+  (function () {
+    var raiz = document.documentElement;
+    document.getElementById('btn-tema').addEventListener('click', function () {
+      var oscuro = raiz.classList.toggle('dark');
+      try { localStorage.setItem('tema', oscuro ? 'oscuro' : 'claro'); } catch (e) {}
+    });
+  })();
+
+  // ── Revelado al hacer scroll ──
+  (function () {
+    var elementos = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) {
+      elementos.forEach(function (el) { el.classList.add('visto'); });
+      return;
+    }
+    var obs = new IntersectionObserver(function (entradas) {
+      entradas.forEach(function (e, i) {
+        if (!e.isIntersecting) return;
+        var el = e.target;
+        setTimeout(function () { el.classList.add('visto'); }, Math.min(i, 4) * 70);
+        obs.unobserve(el);
+      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+    elementos.forEach(function (el) { obs.observe(el); });
+  })();
+
+  // ── Gráfico: crosshair + tooltip ──
+  (function () {
+    var svg = document.getElementById('grafico');
+    if (!svg) return;
+
+    var puntos = [
+      { m: 'marzo',      x: 60,     y: 162.5, v: '$142,6 M', e: '' },
+      { m: 'abril',      x: 138.75, y: 150.4, v: '$151,3 M', e: '' },
+      { m: 'mayo',       x: 217.5,  y: 153.7, v: '$148,9 M', e: '' },
+      { m: 'junio',      x: 296.25, y: 133.5, v: '$163,4 M', e: '' },
+      { m: 'julio',      x: 375,    y: 113.1, v: '$178,1 M', e: '' },
+      { m: 'agosto',     x: 453.75, y: 104.6, v: '$184,2 M', e: 'último mes cerrado' },
+      { m: 'septiembre', x: 532.5,  y: 88.2,  v: '$196,0 M', e: 'proyección · banda 182 – 210' },
+      { m: 'octubre',    x: 611.25, y: 77.7,  v: '$203,5 M', e: 'proyección · banda 186 – 221' },
+      { m: 'noviembre',  x: 690,    y: 63.1,  v: '$214,0 M', e: 'proyección · banda 191 – 237' }
+    ];
+
+    var zonas = document.getElementById('zonas');
+    var riel  = document.getElementById('riel');
+    var globo = document.getElementById('globo');
+    var gMes  = document.getElementById('globo-mes');
+    var gVal  = document.getElementById('globo-val');
+    var gExt  = document.getElementById('globo-ext');
+    var ANCHO = 720, ALTO = 232, paso = 78.75;
+
+    function mostrar(p) {
+      riel.setAttribute('x1', p.x); riel.setAttribute('x2', p.x);
+      riel.setAttribute('opacity', '1');
+      gMes.textContent = p.m;
+      gVal.textContent = p.v;
+      gExt.textContent = p.e;
+      globo.style.left = (p.x / ANCHO * 100) + '%';
+      globo.style.top  = (p.y / ALTO  * 100) + '%';
+      globo.classList.add('on');
+    }
+    function ocultar() {
+      riel.setAttribute('opacity', '0');
+      globo.classList.remove('on');
+    }
+
+    puntos.forEach(function (p) {
+      var r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      r.setAttribute('x', p.x - paso / 2);
+      r.setAttribute('y', 20);
+      r.setAttribute('width', paso);
+      r.setAttribute('height', 160);
+      r.setAttribute('fill', 'transparent');
+      r.setAttribute('tabindex', '0');
+      r.setAttribute('role', 'img');
+      r.setAttribute('aria-label', p.m + ': ' + p.v + (p.e ? ', ' + p.e : ''));
+      r.addEventListener('mouseenter', function () { mostrar(p); });
+      r.addEventListener('focus', function () { mostrar(p); });
+      r.addEventListener('blur', ocultar);
+      zonas.appendChild(r);
+    });
+    svg.addEventListener('mouseleave', ocultar);
+  })();
+</script>
+</body>
+</html>
