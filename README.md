@@ -1,6 +1,6 @@
-# Proyecciones — landing
+# Atino — landing
 
-Landing de una sola página para **Proyecciones**, un sistema de soporte a decisiones
+Landing de una sola página para **Atino**, un sistema de soporte a decisiones
 (DSS) para empresas: dashboards sobre los datos que ya generan, modelos que predicen
 demanda, mora, churn y quiebres de stock, y alertas con la acción recomendada.
 
