@@ -43,7 +43,7 @@ Demo del dashboard (linkeado desde la landing): https://proyecciones-demo.vercel
 Están marcados con `TODO` en el HTML:
 
 - Precios de implementación y abono (hoy dicen "pago único" y "mensual", sin número)
-- Evaluar reemplazar el `mailto:` por un formulario real
+- `hola@ejemplo.com` → el mail o formulario real
 - Confirmar los plazos del hero: "diagnóstico sin costo", "6 a 10 semanas"
 - Las rutas `/privacidad`, `/seguridad`, `/terminos` y `/tratamiento-de-datos`
   del pie todavía no existen
