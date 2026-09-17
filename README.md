@@ -36,6 +36,7 @@ vercel deploy --prod
 ```
 
 Producción: https://proyecciones-landing.vercel.app
+Demo del dashboard (linkeado desde la landing): https://proyecciones-demo.vercel.app
 
 ## Pendientes antes de publicarla en serio
 
@@ -44,6 +45,5 @@ Están marcados con `TODO` en el HTML:
 - Precios de implementación y abono (hoy dicen "pago único" y "mensual", sin número)
 - `hola@ejemplo.com` → el mail o formulario real
 - Confirmar los plazos del hero: "diagnóstico sin costo", "6 a 10 semanas"
-- Grabar el video de 60 s que hoy es un placeholder marcado
 - Las rutas `/privacidad`, `/seguridad`, `/terminos` y `/tratamiento-de-datos`
   del pie todavía no existen
