@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es-AR" class="scroll-smooth">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Términos — Atino</title>
+<meta name="description" content="Términos y condiciones del servicio de Atino: alcance, precios, propiedad de los datos y los modelos, límites de responsabilidad, baja y jurisdicción.">
+
+<!-- Evita el parpadeo de tema antes de pintar -->
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('tema');
+      if (t === 'oscuro' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+    } catch (e) {}
+  })();
+</script>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="/assets/base.js"></script>
+
+<style>
+  body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+  /* Tipografía del documento: un solo lugar para todo el cuerpo legal. */
+  .doc h2 { font-family: ui-serif, Charter, 'Iowan Old Style', Georgia, serif;
+             font-size: 1.35rem; font-weight: 600; letter-spacing: -.01em; margin-top: 2.75rem; }
+  .doc h3 { font-size: 1rem; font-weight: 600; margin-top: 1.75rem; }
+  .doc p, .doc li { font-size: 15px; line-height: 1.7; }
+  .doc p { margin-top: .9rem; color: #5B5D64; }
+  .dark .doc p { color: #95989E; }
+  .doc ul, .doc ol { margin-top: .9rem; padding-left: 1.15rem; color: #5B5D64; }
+  .dark .doc ul, .dark .doc ol { color: #95989E; }
+  .doc ul { list-style: disc; }
+  .doc ol { list-style: decimal; }
+  .doc li { margin-top: .45rem; padding-left: .2rem; }
+  .doc li::marker { color: #D6D1C5; }
+  .dark .doc li::marker { color: #343941; }
+  .doc strong { color: #15161A; font-weight: 600; }
+  .dark .doc strong { color: #EBEBE6; }
+  .doc code { font-size: 13px; }
+</style>
+</head>
+
+<body class="bg-paper text-ink dark:bg-night dark:text-bone font-sans antialiased">
+
+<header class="sticky top-0 z-50 px-4 pt-4">
+  <nav class="mx-auto flex max-w-content items-center justify-between gap-4 rounded-xl border border-line bg-card/85 px-4 py-2.5 backdrop-blur-md dark:border-edge dark:bg-panel/85">
+    <a href="/" class="flex items-center gap-2.5">
+      <span class="grid h-7 w-7 place-items-center rounded-md border border-line2 bg-paper dark:border-edge2 dark:bg-night">
+        <svg viewBox="0 0 16 16" class="h-4 w-4" aria-hidden="true">
+          <path d="M2 12.5 5.4 9.1l2.4 1.6L13.4 4.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="text-bien dark:text-bien2"/>
+          <circle cx="13.4" cy="4.2" r="1.5" fill="currentColor" class="text-bien dark:text-bien2"/>
+        </svg>
+      </span>
+      <span class="font-display text-[17px] font-semibold tracking-tight">Atino</span>
+    </a>
+
+    <div class="flex items-center gap-2">
+      <a href="/" class="rounded-lg px-3 py-2 text-[13px] text-soft transition hover:text-ink dark:text-bonesoft dark:hover:text-bone">Volver</a>
+      <button id="btn-tema" type="button" aria-label="Cambiar tema"
+        class="grid h-9 w-9 place-items-center rounded-lg border border-line text-soft transition hover:bg-paper dark:border-edge dark:text-bonesoft dark:hover:bg-night">
+        <svg class="h-4 w-4 dark:hidden" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M16 11.5A6.5 6.5 0 0 1 8.5 4a6.5 6.5 0 1 0 7.5 7.5Z" stroke-linejoin="round"/>
+        </svg>
+        <svg class="hidden h-4 w-4 dark:block" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <circle cx="10" cy="10" r="3.6"/>
+          <path d="M10 1.6v2M10 16.4v2M1.6 10h2M16.4 10h2M4.1 4.1l1.4 1.4M14.5 14.5l1.4 1.4M15.9 4.1l-1.4 1.4M5.5 14.5l-1.4 1.4" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<main class="px-4 py-14 sm:py-20">
+  <article class="doc mx-auto max-w-[46rem]">
+    <p class="font-mono text-[11px] uppercase tracking-[0.16em] text-soft dark:text-bonesoft">Términos y condiciones</p>
+    <h1 class="mt-3 font-display text-3xl font-semibold tracking-tight sm:text-[2.3rem] sm:leading-[1.14]">Las reglas del servicio</h1>
+    <p class="mt-5 text-[16px] leading-relaxed text-soft dark:text-bonesoft">Estas condiciones generales aplican al servicio de Atino. Lo particular de cada cliente —alcance, precio y plazos— va en la propuesta firmada, que prevalece sobre este texto cuando difieren.</p>
+    <p class="mt-6 font-mono text-[11px] text-soft dark:text-bonesoft">Última actualización: 2 de octubre de 2026</p>
+
+    <div class="mt-10 border-t border-line pt-2 dark:border-edge">
+
+<h2>1. Qué contratás</h2>
+<p>Dos cosas, y conviene no confundirlas:</p>
+<ol>
+  <li>
+    <strong>Una implementación inicial:</strong> conectar tus sistemas, ordenar los datos, montar
+    los dashboards y poner a andar los primeros modelos. Tiene alcance y plazo definidos en la
+    propuesta.
+  </li>
+  <li>
+    <strong>Un abono mensual:</strong> que la plataforma siga andando, los modelos se sigan
+    midiendo contra la realidad y se corrijan cuando se degradan. No es soporte pasivo: es
+    mantener vivo algo que se degrada solo.
+  </li>
+</ol>
+<p>
+  El servicio es para empresas. Quien contrata declara que lo hace en nombre de una persona
+  jurídica y que tiene facultades para obligarla.
+</p>
+
+<h2>2. Precio y facturación</h2>
+<p>
+  El precio de la implementación y el del abono son los de la propuesta que hayas firmado. El
+  abono se factura por mes adelantado. Si actualizamos el abono, te avisamos con 60 días de
+  anticipación y podés dar de baja sin penalidad antes de que aplique.
+</p>
+
+<h2>3. De quién es cada cosa</h2>
+<ul>
+  <li>
+    <strong>Tuyos:</strong> tus datos, y los modelos entrenados con tus datos. Si te vas, te los
+    llevás.
+  </li>
+  <li>
+    <strong>Nuestra:</strong> la plataforma —el código, los conectores, los tipos de modelo, la
+    lógica de alertas, el diseño—. Contratás el derecho a usarla mientras dure el contrato, no la
+    propiedad.
+  </li>
+  <li>
+    <strong>Aprendizaje genérico:</strong> lo que aprendemos haciendo tu implementación, a nivel
+    de cómo se resuelve un problema, lo seguimos usando. Lo que no se usa ni se transfiere es tu
+    información.
+  </li>
+</ul>
+
+<h2>4. Lo que el servicio no es</h2>
+<p>
+  Atino es una herramienta de <strong>soporte a la decisión</strong>. Las proyecciones y las
+  alertas son estimaciones con error medido, no certezas: cada número va con su banda y con la
+  precisión de los últimos meses a la vista. <strong>La decisión de negocio es siempre tuya</strong>,
+  y quien conoce la operación tiene que poder desoír al modelo.
+</p>
+<p>
+  No damos asesoramiento financiero, contable, impositivo ni legal, y el servicio no reemplaza
+  los controles internos de tu empresa.
+</p>
+
+<h2>5. Confidencialidad</h2>
+<p>
+  Todo lo que veamos de tu operación es confidencial y no se comparte con nadie fuera del equipo
+  asignado a tu cuenta. La obligación sigue vigente después de terminado el contrato. Si querés
+  nombrarte como caso o logo en nuestro sitio, te lo pedimos por escrito y podés decir que no sin
+  que eso cambie nada del servicio.
+</p>
+
+<h2>6. Disponibilidad</h2>
+<p>
+  Hacemos mantenimiento programado avisando con anticipación y, cuando se puede, fuera del
+  horario de operación. Si tu caso necesita un compromiso de disponibilidad con número y
+  consecuencia, se acuerda por escrito en la propuesta; sin eso firmado, no hay SLA garantizado.
+</p>
+
+<h2>7. Responsabilidad</h2>
+<p>
+  Respondemos por los daños directos que causemos por incumplimiento, con el límite de lo que nos
+  hayas pagado en los doce meses anteriores al hecho. No respondemos por lucro cesante ni por
+  decisiones de negocio tomadas a partir de una proyección. Nada de esto limita la responsabilidad
+  por dolo o culpa grave, ni los derechos que la normativa de orden público te reconozca.
+</p>
+
+<h2>8. Dar de baja</h2>
+<p>
+  Podés dar de baja el abono avisando con 30 días. No hay penalidad ni permanencia mínima más
+  allá de lo que figure en la propuesta. Al terminar:
+</p>
+<ul>
+  <li>Te exportamos tus datos y tus modelos en formato utilizable, sin cobrar por eso.</li>
+  <li>Tenés 30 días para pedir esa exportación.</li>
+  <li>Pasado ese plazo, damos de baja la instancia y borramos los datos, salvo lo que debamos conservar por ley.</li>
+</ul>
+<p>
+  Podemos suspender el servicio por falta de pago, avisando antes y dándote plazo para regularizar.
+</p>
+
+<h2>9. Cambios en estas condiciones</h2>
+<p>
+  Si las modificamos, cambia la fecha de arriba y te avisamos por mail con 30 días de
+  anticipación. Si el cambio no te sirve, podés dar de baja sin penalidad dentro de ese plazo.
+</p>
+
+<h2>10. Ley aplicable</h2>
+<p>
+  Se aplica la ley argentina. Cualquier controversia se somete a los tribunales ordinarios de la
+  Ciudad Autónoma de Buenos Aires, salvo que la propuesta firmada indique otra cosa.
+</p>
+<!-- TODO: confirmar jurisdicción con el abogado antes de publicar en serio -->
+
+    </div>
+
+    <nav class="mt-16 grid gap-2 rounded-xl border border-line bg-card p-5 dark:border-edge dark:bg-panel sm:grid-cols-2" aria-label="Otros documentos">
+      <p class="font-mono text-[11px] uppercase tracking-[0.14em] text-soft dark:text-bonesoft sm:col-span-2">Los otros tres</p>
+      <a href="/privacidad" class="rounded-lg border border-line px-4 py-3 text-[14px] transition hover:border-line2 hover:bg-paper dark:border-edge dark:hover:border-edge2 dark:hover:bg-night">Privacidad</a>
+      <a href="/seguridad" class="rounded-lg border border-line px-4 py-3 text-[14px] transition hover:border-line2 hover:bg-paper dark:border-edge dark:hover:border-edge2 dark:hover:bg-night">Seguridad</a>
+      <a href="/tratamiento-de-datos" class="rounded-lg border border-line px-4 py-3 text-[14px] transition hover:border-line2 hover:bg-paper dark:border-edge dark:hover:border-edge2 dark:hover:bg-night">Tratamiento de datos</a>
+    </nav>
+
+    <div class="mt-4 rounded-xl border border-line bg-card p-5 dark:border-edge dark:bg-panel">
+      <p class="text-[14px] font-medium">¿Algo de esto no te cierra?</p>
+      <p class="mt-1.5 text-[13px] leading-relaxed text-soft dark:text-bonesoft">
+        Escribinos y lo revisamos con vos antes de firmar. Si tu abogado quiere otra redacción,
+        se negocia: esto es el piso, no un decreto.
+      </p>
+      <a href="mailto:hola@ejemplo.com" class="mt-3 inline-block font-mono text-[12px] text-bien underline underline-offset-4 dark:text-bien2">hola@ejemplo.com</a>
+    </div>
+  </article>
+</main>
+
+<footer class="border-t border-line px-4 py-12 dark:border-edge">
+  <div class="mx-auto flex max-w-content flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
+    <div>
+      <p class="font-display text-[17px] font-semibold tracking-tight">Atino</p>
+      <p class="mt-2 max-w-xs text-[14px] leading-relaxed text-soft dark:text-bonesoft">
+        Sistema de soporte a decisiones para empresas que ya generan datos y todavía no los usan.
+      </p>
+      <p class="mt-4 font-mono text-[11px] text-soft dark:text-bonesoft">Buenos Aires, Argentina</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-x-12 gap-y-2 text-[14px] sm:gap-x-16">
+      <a href="/privacidad" class="text-soft dark:text-bonesoft transition hover:text-ink dark:hover:text-bone">Privacidad</a>
+      <a href="/seguridad" class="text-soft dark:text-bonesoft transition hover:text-ink dark:hover:text-bone">Seguridad</a>
+      <a href="/terminos" class="font-medium text-ink dark:text-bone transition hover:text-ink dark:hover:text-bone">Términos</a>
+      <a href="/tratamiento-de-datos" class="text-soft dark:text-bonesoft transition hover:text-ink dark:hover:text-bone">Tratamiento de datos</a>
+      <a href="/#faq" class="text-soft transition hover:text-ink dark:text-bonesoft dark:hover:text-bone">Preguntas</a>
+      <a href="mailto:hola@ejemplo.com" class="text-soft transition hover:text-ink dark:text-bonesoft dark:hover:text-bone">Contacto</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

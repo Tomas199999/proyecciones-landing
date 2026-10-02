@@ -8,7 +8,13 @@ Modelo de negocio: implementación inicial + abono mensual.
 
 ## Cómo está hecho
 
-Un solo archivo, `index.html`. Sin build, sin dependencias que instalar.
+`index.html` es una sola pieza, sin build. Las cuatro páginas legales
+(`privacidad`, `seguridad`, `terminos`, `tratamiento-de-datos`) comparten
+`assets/base.js`, que tiene la configuración de Tailwind y el interruptor de tema:
+repetir ese bloque cuatro veces garantizaba que un día se desincronizaran.
+
+Se generan con `scripts/gen_legales.py` y el resultado se commitea. `vercel.json`
+activa `cleanUrls` para que `/privacidad` sirva `privacidad.html`.
 
 - Tailwind por CDN (`cdn.tailwindcss.com`), configurado en línea
 - Modo claro y oscuro, con preferencia guardada en `localStorage`
@@ -45,5 +51,7 @@ Están marcados con `TODO` en el HTML:
 - `hola@ejemplo.com` → el mail o formulario real
 - Confirmar los plazos del hero: "diagnóstico sin costo", "6 a 10 semanas"
 - Grabar el video de 60 s que hoy es un placeholder marcado
-- Las rutas `/privacidad`, `/seguridad`, `/terminos` y `/tratamiento-de-datos`
-  del pie todavía no existen
+- Las cuatro páginas legales existen pero **no se pueden publicar todavía**: el canal
+  de contacto sigue siendo `hola@ejemplo.com`, y una política de privacidad que da una
+  dirección falsa para ejercer derechos es peor que no tenerla. Falta además la razón
+  social y el CUIT (marcados con `TODO` en el HTML) y que las lea un abogado.

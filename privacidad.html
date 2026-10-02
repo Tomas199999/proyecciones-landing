@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es-AR" class="scroll-smooth">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacidad — Atino</title>
+<meta name="description" content="Política de privacidad de Atino: qué datos personales tratamos, para qué, con quién los compartimos y cómo ejercés tus derechos bajo la Ley 25.326.">
+
+<!-- Evita el parpadeo de tema antes de pintar -->
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('tema');
+      if (t === 'oscuro' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+    } catch (e) {}
+  })();
+</script>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="/assets/base.js"></script>
+
+<style>
+  body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+  /* Tipografía del documento: un solo lugar para todo el cuerpo legal. */
+  .doc h2 { font-family: ui-serif, Charter, 'Iowan Old Style', Georgia, serif;
+             font-size: 1.35rem; font-weight: 600; letter-spacing: -.01em; margin-top: 2.75rem; }
+  .doc h3 { font-size: 1rem; font-weight: 600; margin-top: 1.75rem; }
+  .doc p, .doc li { font-size: 15px; line-height: 1.7; }
+  .doc p { margin-top: .9rem; color: #5B5D64; }
+  .dark .doc p { color: #95989E; }
+  .doc ul, .doc ol { margin-top: .9rem; padding-left: 1.15rem; color: #5B5D64; }
+  .dark .doc ul, .dark .doc ol { color: #95989E; }
+  .doc ul { list-style: disc; }
+  .doc ol { list-style: decimal; }
+  .doc li { margin-top: .45rem; padding-left: .2rem; }
+  .doc li::marker { color: #D6D1C5; }
+  .dark .doc li::marker { color: #343941; }
+  .doc strong { color: #15161A; font-weight: 600; }
+  .dark .doc strong { color: #EBEBE6; }
+  .doc code { font-size: 13px; }
+</style>
+</head>
+
+<body class="bg-paper text-ink dark:bg-night dark:text-bone font-sans antialiased">
+
+<header class="sticky top-0 z-50 px-4 pt-4">
+  <nav class="mx-auto flex max-w-content items-center justify-between gap-4 rounded-xl border border-line bg-card/85 px-4 py-2.5 backdrop-blur-md dark:border-edge dark:bg-panel/85">
+    <a href="/" class="flex items-center gap-2.5">
+      <span class="grid h-7 w-7 place-items-center rounded-md border border-line2 bg-paper dark:border-edge2 dark:bg-night">
+        <svg viewBox="0 0 16 16" class="h-4 w-4" aria-hidden="true">
+          <path d="M2 12.5 5.4 9.1l2.4 1.6L13.4 4.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="text-bien dark:text-bien2"/>
+          <circle cx="13.4" cy="4.2" r="1.5" fill="currentColor" class="text-bien dark:text-bien2"/>
+        </svg>
+      </span>
+      <span class="font-display text-[17px] font-semibold tracking-tight">Atino</span>
+    </a>
+
+    <div class="flex items-center gap-2">
+      <a href="/" class="rounded-lg px-3 py-2 text-[13px] text-soft transition hover:text-ink dark:text-bonesoft dark:hover:text-bone">Volver</a>
+      <button id="btn-tema" type="button" aria-label="Cambiar tema"
+        class="grid h-9 w-9 place-items-center rounded-lg border border-line text-soft transition hover:bg-paper dark:border-edge dark:text-bonesoft dark:hover:bg-night">
+        <svg class="h-4 w-4 dark:hidden" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M16 11.5A6.5 6.5 0 0 1 8.5 4a6.5 6.5 0 1 0 7.5 7.5Z" stroke-linejoin="round"/>
+        </svg>
+        <svg class="hidden h-4 w-4 dark:block" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <circle cx="10" cy="10" r="3.6"/>
+          <path d="M10 1.6v2M10 16.4v2M1.6 10h2M16.4 10h2M4.1 4.1l1.4 1.4M14.5 14.5l1.4 1.4M15.9 4.1l-1.4 1.4M5.5 14.5l-1.4 1.4" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<main class="px-4 py-14 sm:py-20">
+  <article class="doc mx-auto max-w-[46rem]">
+    <p class="font-mono text-[11px] uppercase tracking-[0.16em] text-soft dark:text-bonesoft">Política de privacidad</p>
+    <h1 class="mt-3 font-display text-3xl font-semibold tracking-tight sm:text-[2.3rem] sm:leading-[1.14]">Qué hacemos con los datos personales</h1>
+    <p class="mt-5 text-[16px] leading-relaxed text-soft dark:text-bonesoft">Este documento explica qué datos personales trata Atino, con qué finalidad y durante cuánto tiempo. Está escrito para que se entienda, no para cubrirnos.</p>
+    <p class="mt-6 font-mono text-[11px] text-soft dark:text-bonesoft">Última actualización: 2 de octubre de 2026</p>
+
+    <div class="mt-10 border-t border-line pt-2 dark:border-edge">
+
+<h2>1. Quién es responsable</h2>
+<p>
+  Atino opera desde Buenos Aires, Argentina. Para cualquier cuestión sobre este documento o
+  sobre tus datos personales, el canal es
+  <a href="mailto:hola@ejemplo.com" class="text-bien underline underline-offset-4 dark:text-bien2">hola@ejemplo.com</a>,
+  y contestamos en el día.
+</p>
+<!-- TODO: razón social, CUIT y domicilio legal cuando esté constituida la sociedad -->
+
+<h2>2. Dos situaciones distintas</h2>
+<p>Conviene separarlas desde el principio, porque las reglas no son las mismas:</p>
+<ul>
+  <li>
+    <strong>Visitás este sitio o nos escribís.</strong> Ahí tratamos tus datos como responsables:
+    decidimos nosotros qué se hace con ellos, y esta política los cubre por completo.
+  </li>
+  <li>
+    <strong>Sos cliente y la plataforma procesa datos de tu empresa.</strong> Ahí el responsable
+    sos vos y nosotros somos encargados del tratamiento: hacemos lo que vos nos instruís y nada
+    más. Las condiciones están en
+    <a href="/tratamiento-de-datos" class="text-bien underline underline-offset-4 dark:text-bien2">Tratamiento de datos</a>.
+  </li>
+</ul>
+
+<h2>3. Qué datos tratamos</h2>
+<h3>Si nos escribís</h3>
+<p>
+  Tu dirección de correo, tu nombre, la empresa en la que trabajás y lo que nos cuentes en el
+  mensaje. Nada de eso lo pedimos por formulario: llega porque vos lo escribiste en un mail.
+</p>
+<h3>Si avanzamos a un diagnóstico</h3>
+<p>
+  Datos de contacto de las personas de tu equipo con las que coordinamos, y la información de
+  negocio que decidas compartir para que evaluemos si tus datos alcanzan. Si en esa muestra hay
+  datos personales de terceros —clientes tuyos, por ejemplo— te vamos a pedir que los anonimices
+  antes de mandarlos, y si no se puede, firmamos el acuerdo de tratamiento primero.
+</p>
+<h3>Si navegás este sitio</h3>
+<p>
+  <strong>No usamos cookies, ni analítica, ni píxeles de seguimiento.</strong> No hay Google
+  Analytics, no hay Meta Pixel, no hay nada que te siga entre sitios. Lo único que se guarda en
+  tu navegador es una preferencia llamada <code>tema</code>, en <code>localStorage</code>, para
+  recordar si elegiste modo claro u oscuro. Vive en tu equipo, no viaja a ningún servidor y la
+  borrás limpiando los datos del sitio.
+</p>
+<p>
+  El sitio sí carga una hoja de estilos desde <code>cdn.tailwindcss.com</code>. Esa petición deja
+  tu dirección IP en los registros de ese proveedor, como cualquier recurso externo de cualquier
+  página. No le mandamos ningún dato tuyo nosotros.
+</p>
+
+<h2>4. Para qué los usamos</h2>
+<ul>
+  <li>Contestarte, coordinar una reunión y prepararte una propuesta.</li>
+  <li>Prestar el servicio contratado y sostenerlo mes a mes.</li>
+  <li>Cumplir obligaciones legales, impositivas y contables.</li>
+</ul>
+<p>
+  No hacemos perfilado publicitario, no vendemos ni cedemos bases de datos, y no te vamos a
+  mandar newsletters que no pediste.
+</p>
+
+<h2>5. Con quién los compartimos</h2>
+<p>
+  Con los proveedores de infraestructura y de correo necesarios para que esto funcione, y nada
+  más. No hay intermediarios comerciales ni brokers de datos en el medio. Si sos cliente, la
+  lista concreta de proveedores que tocan tu instancia va nombrada en el contrato, con nombre y
+  país, y te avisamos antes de cambiarla.
+</p>
+<p>
+  Algunos de esos proveedores están fuera de la Argentina. Cuando eso implica una transferencia
+  internacional, se hace con las garantías que exige la normativa vigente.
+</p>
+<!-- TODO: nombrar los proveedores concretos (infraestructura, correo) y sus países -->
+
+<h2>6. Cuánto tiempo los guardamos</h2>
+<ul>
+  <li><strong>Consultas que no avanzan:</strong> hasta dos años, por si retomás la conversación.</li>
+  <li><strong>Datos de clientes:</strong> mientras dure el contrato, más los plazos legales de conservación fiscal y contable.</li>
+  <li><strong>Datos de negocio procesados en tu instancia:</strong> lo que diga el acuerdo de tratamiento; al terminar, se devuelven o se borran, como elijas.</li>
+</ul>
+
+<h2>7. Tus derechos</h2>
+<p>
+  Podés pedir acceso, rectificación, actualización y supresión de tus datos personales, en los
+  términos de la <strong>Ley 25.326 de Protección de los Datos Personales</strong>. Escribís a
+  <a href="mailto:hola@ejemplo.com" class="text-bien underline underline-offset-4 dark:text-bien2">hola@ejemplo.com</a>
+  y te contestamos: el acceso dentro de los diez días corridos, la rectificación o supresión
+  dentro de los cinco días hábiles de acreditada la solicitud.
+</p>
+<p>
+  La <strong>Agencia de Acceso a la Información Pública</strong> es el órgano de control de esa
+  ley y tiene atribuciones para atender las denuncias de quien considere afectados sus derechos.
+</p>
+
+<h2>8. Menores de edad</h2>
+<p>
+  Esto es un servicio para empresas. No está dirigido a menores de 18 años y no recolectamos sus
+  datos a sabiendas.
+</p>
+
+<h2>9. Cambios</h2>
+<p>
+  Si cambiamos algo de fondo, cambia la fecha de arriba y, si sos cliente, te lo avisamos por
+  mail antes de que aplique. No modificamos esta política en silencio.
+</p>
+
+    </div>
+
+    <nav class="mt-16 grid gap-2 rounded-xl border border-line bg-card p-5 dark:border-edge dark:bg-panel sm:grid-cols-2" aria-label="Otros documentos">
+      <p class="font-mono text-[11px] uppercase tracking-[0.14em] text-soft dark:text-bonesoft sm:col-span-2">Los otros tres</p>
+      <a href="/seguridad" class="rounded-lg border border-line px-4 py-3 text-[14px] transition hover:border-line2 hover:bg-paper dark:border-edge dark:hover:border-edge2 dark:hover:bg-night">Seguridad</a>
+      <a href="/terminos" class="rounded-lg border border-line px-4 py-3 text-[14px] transition hover:border-line2 hover:bg-paper dark:border-edge dark:hover:border-edge2 dark:hover:bg-night">Términos</a>
+      <a href="/tratamiento-de-datos" class="rounded-lg border border-line px-4 py-3 text-[14px] transition hover:border-line2 hover:bg-paper dark:border-edge dark:hover:border-edge2 dark:hover:bg-night">Tratamiento de datos</a>
+    </nav>
+
+    <div class="mt-4 rounded-xl border border-line bg-card p-5 dark:border-edge dark:bg-panel">
+      <p class="text-[14px] font-medium">¿Algo de esto no te cierra?</p>
+      <p class="mt-1.5 text-[13px] leading-relaxed text-soft dark:text-bonesoft">
+        Escribinos y lo revisamos con vos antes de firmar. Si tu abogado quiere otra redacción,
+        se negocia: esto es el piso, no un decreto.
+      </p>
+      <a href="mailto:hola@ejemplo.com" class="mt-3 inline-block font-mono text-[12px] text-bien underline underline-offset-4 dark:text-bien2">hola@ejemplo.com</a>
+    </div>
+  </article>
+</main>
+
+<footer class="border-t border-line px-4 py-12 dark:border-edge">
+  <div class="mx-auto flex max-w-content flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
+    <div>
+      <p class="font-display text-[17px] font-semibold tracking-tight">Atino</p>
+      <p class="mt-2 max-w-xs text-[14px] leading-relaxed text-soft dark:text-bonesoft">
+        Sistema de soporte a decisiones para empresas que ya generan datos y todavía no los usan.
+      </p>
+      <p class="mt-4 font-mono text-[11px] text-soft dark:text-bonesoft">Buenos Aires, Argentina</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-x-12 gap-y-2 text-[14px] sm:gap-x-16">
+      <a href="/privacidad" class="font-medium text-ink dark:text-bone transition hover:text-ink dark:hover:text-bone">Privacidad</a>
+      <a href="/seguridad" class="text-soft dark:text-bonesoft transition hover:text-ink dark:hover:text-bone">Seguridad</a>
+      <a href="/terminos" class="text-soft dark:text-bonesoft transition hover:text-ink dark:hover:text-bone">Términos</a>
+      <a href="/tratamiento-de-datos" class="text-soft dark:text-bonesoft transition hover:text-ink dark:hover:text-bone">Tratamiento de datos</a>
+      <a href="/#faq" class="text-soft transition hover:text-ink dark:text-bonesoft dark:hover:text-bone">Preguntas</a>
+      <a href="mailto:hola@ejemplo.com" class="text-soft transition hover:text-ink dark:text-bonesoft dark:hover:text-bone">Contacto</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
